@@ -1,0 +1,121 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'salsasalsa122323@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'super_admin')
+      );
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isHotelManager(hotelId) {
+      return isSuperAdmin() || (
+        isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        getUserData().role == 'hotel_manager' &&
+        (getUserData().hotelId == 'all' || getUserData().hotelId == hotelId)
+      );
+    }
+
+    function canAccessBranch(hotelId, branchId) {
+      return isSuperAdmin() || (
+        isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        (getUserData().hotelId == 'all' || getUserData().hotelId == hotelId || hotelId == null) &&
+        (getUserData().branchId == 'all' || getUserData().branchId == branchId || branchId == null)
+      );
+    }
+
+    // Users collection:
+    // Super Admin has full management. Each user can read their own profile.
+    // Super Admin cannot be downgraded or disabled by anyone.
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isSuperAdmin());
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin() && (
+        resource.data.email != 'salsasalsa122323@gmail.com' ||
+        (request.resource.data.role == 'super_admin' && request.resource.data.disabled != true)
+      );
+      allow delete: if isSuperAdmin() && resource.data.email != 'salsasalsa122323@gmail.com';
+    }
+
+    // Hotels collection:
+    match /hotels/{hotelId} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
+    }
+
+    // Branches collection:
+    match /branches/{branchId} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin() || isHotelManager(request.resource.data.hotelId);
+    }
+
+    // Inventory items (catalog):
+    match /inventory_items/{itemId} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin() || (
+        isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        getUserData().role in ['hotel_manager', 'store_keeper']
+      );
+    }
+
+    // Branch tracked items:
+    match /branch_tracked_items/{trackedId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (
+        isSuperAdmin() ||
+        canAccessBranch(request.resource.data.hotelId, request.resource.data.branchId)
+      );
+    }
+
+    // Recipes & Menu:
+    match /recipes/{recipeId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (
+        isSuperAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         getUserData().role in ['hotel_manager', 'chef'])
+      );
+    }
+
+    // Daily stock balance sheets & audits:
+    match /branch_daily_audits/{auditId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (
+        isSuperAdmin() ||
+        canAccessBranch(request.resource.data.hotelId, request.resource.data.branchId)
+      );
+    }
+
+    // Central store bin cards:
+    match /central_bin_cards/{cardId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (
+        isSuperAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         getUserData().role in ['hotel_manager', 'store_keeper'])
+      );
+    }
+
+    // Expenses:
+    match /expenses/{expenseId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && (
+        isSuperAdmin() ||
+        canAccessBranch(request.resource.data.hotelId, request.resource.data.branchId)
+      );
+    }
+  }
+}

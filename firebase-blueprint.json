@@ -1,0 +1,152 @@
+{
+  "entities": {
+    "Branch": {
+      "title": "Branch",
+      "description": "Restaurant branch details including manager and location",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nameAm": { "type": "string" },
+        "nameEn": { "type": "string" },
+        "code": { "type": "string" },
+        "location": { "type": "string" },
+        "manager": { "type": "string" },
+        "phone": { "type": "string" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "nameAm", "nameEn", "code", "manager"]
+    },
+    "InventoryItem": {
+      "title": "InventoryItem",
+      "description": "Stock raw material in central warehouse and branches",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string" },
+        "nameAm": { "type": "string" },
+        "nameEn": { "type": "string" },
+        "category": { "type": "string" },
+        "unit": { "type": "string" },
+        "unitAm": { "type": "string" },
+        "lastPurchasePrice": { "type": "number" },
+        "weightedAvgCost": { "type": "number" },
+        "minStockLevel": { "type": "number" },
+        "currentCentralStock": { "type": "number" },
+        "description": { "type": "string" }
+      },
+      "required": ["id", "nameAm", "unit", "lastPurchasePrice"]
+    },
+    "BranchTrackedItem": {
+      "title": "BranchTrackedItem",
+      "description": "Tracked primary raw material for a specific branch daily sheet",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "branchId": { "type": "string" },
+        "itemId": { "type": "string" },
+        "countUnit": { "type": "string" },
+        "countUnitAm": { "type": "string" },
+        "unitPrice": { "type": "number" },
+        "conversionFactor": { "type": "number" },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["id", "branchId", "itemId", "countUnitAm"]
+    },
+    "Recipe": {
+      "title": "Recipe",
+      "description": "Menu dish recipe with ingredients and selling price",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "branchId": { "type": "string" },
+        "nameAm": { "type": "string" },
+        "nameEn": { "type": "string" },
+        "category": { "type": "string" },
+        "sellingPrice": { "type": "number" },
+        "isActive": { "type": "boolean" }
+      },
+      "required": ["id", "branchId", "nameAm", "sellingPrice"]
+    },
+    "BranchDailyAudit": {
+      "title": "BranchDailyAudit",
+      "description": "Daily branch inventory audit, chef sales, cashier sales and variances",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "branchId": { "type": "string" },
+        "branchName": { "type": "string" },
+        "date": { "type": "string" },
+        "ethiopianDateStr": { "type": "string" },
+        "managerName": { "type": "string" },
+        "status": { "type": "string" },
+        "totalSalesRevenue": { "type": "number" },
+        "totalVarianceLoss": { "type": "number" },
+        "savedAt": { "type": "string" }
+      },
+      "required": ["id", "branchId", "date", "managerName"]
+    },
+    "CentralBinCard": {
+      "title": "CentralBinCard",
+      "description": "Bin card ledger entry for central store receipts and transfers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "itemId": { "type": "string" },
+        "date": { "type": "string" },
+        "refNo": { "type": "string" },
+        "type": { "type": "string" },
+        "branchId": { "type": "string" },
+        "quantityIn": { "type": "number" },
+        "quantityOut": { "type": "number" },
+        "balance": { "type": "number" },
+        "unitPrice": { "type": "number" },
+        "recordedBy": { "type": "string" }
+      },
+      "required": ["id", "itemId", "date", "type", "refNo"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile with authorization role and assigned branch",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "fullName": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "assignedBranchId": { "type": "string" }
+      },
+      "required": ["uid", "fullName", "role"]
+    }
+  },
+  "firestore": {
+    "/branches/{branchId}": {
+      "schema": { "$ref": "#/entities/Branch" },
+      "description": "Restaurant branch locations"
+    },
+    "/inventory_items/{itemId}": {
+      "schema": { "$ref": "#/entities/InventoryItem" },
+      "description": "Catalog of stock inventory items"
+    },
+    "/branch_tracked_items/{trackedId}": {
+      "schema": { "$ref": "#/entities/BranchTrackedItem" },
+      "description": "Branch specific tracked primary items"
+    },
+    "/recipes/{recipeId}": {
+      "schema": { "$ref": "#/entities/Recipe" },
+      "description": "Menu recipes by branch"
+    },
+    "/branch_daily_audits/{auditId}": {
+      "schema": { "$ref": "#/entities/BranchDailyAudit" },
+      "description": "Daily stock balance sheets and audits"
+    },
+    "/central_bin_cards/{cardId}": {
+      "schema": { "$ref": "#/entities/CentralBinCard" },
+      "description": "Central warehouse stock ledger movements"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "System user profiles and roles"
+    }
+  }
+}

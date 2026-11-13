@@ -1,0 +1,6 @@
+{
+  "name": "Ethiopia Store & Multi-Branch Recipe Reconciliation ERP",
+  "description": "የማዕከላዊ ስቶር፣ የቅርንጫፎች ቢን ካርድ፣ የዋጋ መዋዠቅ እና ስማርት የሪሲፒ ሪኮንሲሌሽን ማኔጅመንት ሲስተም",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
